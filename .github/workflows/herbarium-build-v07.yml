@@ -1,0 +1,41 @@
+name: Build Herbarium RP v0.7
+on:
+  push:
+    branches:
+      - herbarium-build-v07-20261015
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore Herbarium sources
+        run: |
+          base64 --decode herbarium-source-v07.b64 > herbarium-sources.zip
+          unzip -q herbarium-sources.zip
+          test -f Herbarium/build.gradle.kts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+      - name: Verify progression math
+        working-directory: Herbarium
+        run: |
+          mkdir -p build/progression-check
+          javac -d build/progression-check src/main/java/fr/herbarium/BotanyProgression.java src/test/java/fr/herbarium/BotanyProgressionCheck.java
+          java -cp build/progression-check fr.herbarium.BotanyProgressionCheck
+      - name: Build Paper 26.2 plugin
+        working-directory: Herbarium
+        run: gradle clean build --stacktrace --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: Herbarium-RP-v0.7-JAR
+          path: Herbarium/build/libs/*.jar
+          if-no-files-found: error
