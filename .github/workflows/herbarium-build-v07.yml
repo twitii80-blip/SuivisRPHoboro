@@ -32,7 +32,7 @@ jobs:
           java -cp build/progression-check fr.herbarium.BotanyProgressionCheck
       - name: Build Paper 26.2 plugin
         working-directory: Herbarium
-        run: gradle clean build --stacktrace --no-daemon
+        run: gradle clean jar --stacktrace --no-daemon
       - uses: actions/upload-artifact@v4
         if: success()
         with:
